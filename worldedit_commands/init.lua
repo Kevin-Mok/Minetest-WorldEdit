@@ -270,21 +270,25 @@ minetest.register_chatcommand("/pos2", {
 	end,
 })
 
+local function set_both_pos(name)
+    worldedit.set_pos[name] = "pos1"
+    worldedit.player_notify(name, "select positions by punching two nodes")
+end
+
 minetest.register_chatcommand("/p", {
-	params = "set/set1/set2/get",
+	params = "s/s1/s2/g",
 	description = "Set WorldEdit region, WorldEdit position 1, or WorldEdit position 2 by punching nodes, or display the current WorldEdit region",
 	privs = {worldedit=true},
 	func = function(name, param)
-		if param == "set" then --set both WorldEdit positions
-			worldedit.set_pos[name] = "pos1"
-			worldedit.player_notify(name, "select positions by punching two nodes")
-		elseif param == "set1" then --set WorldEdit position 1
+		if param == "s" then --set both WorldEdit positions
+            set_both_pos(name)
+		elseif param == "s1" then --set WorldEdit position 1
 			worldedit.set_pos[name] = "pos1only"
 			worldedit.player_notify(name, "select position 1 by punching a node")
-		elseif param == "set2" then --set WorldEdit position 2
+		elseif param == "s2" then --set WorldEdit position 2
 			worldedit.set_pos[name] = "pos2"
 			worldedit.player_notify(name, "select position 2 by punching a node")
-		elseif param == "get" then --display current WorldEdit positions
+		elseif param == "g" then --display current WorldEdit positions
 			if worldedit.pos1[name] ~= nil then
 				worldedit.player_notify(name, "position 1: " .. minetest.pos_to_string(worldedit.pos1[name]))
 			else
@@ -301,18 +305,26 @@ minetest.register_chatcommand("/p", {
 	end,
 })
 
+minetest.register_chatcommand("/pset", {
+	description = "Set WorldEdit region",
+	privs = {worldedit=true},
+	func = function(name)
+        set_both_pos(name)
+	end,
+})
+
 minetest.register_chatcommand("/fixedpos", {
-	params = "set1/set2 x y z",
+	params = "s1/s2 x y z",
 	description = "Set a WorldEdit region position to the position at (<x>, <y>, <z>)",
 	privs = {worldedit=true},
 	func = function(name, param)
-		local found, _, flag, x, y, z = param:find("^(set[12])%s+([+-]?%d+)%s+([+-]?%d+)%s+([+-]?%d+)$")
+		local found, _, flag, x, y, z = param:find("^(s[12])%s+([+-]?%d+)%s+([+-]?%d+)%s+([+-]?%d+)$")
 		if found == nil then
 			worldedit.player_notify(name, "invalid usage: " .. param)
 			return
 		end
 		local pos = {x=tonumber(x), y=tonumber(y), z=tonumber(z)}
-		if flag == "set1" then
+		if flag == "s1" then
 			worldedit.pos1[name] = pos
 			worldedit.mark_pos1(name)
 			worldedit.player_notify(name, "position 1 set to " .. minetest.pos_to_string(pos))
@@ -384,16 +396,34 @@ minetest.register_chatcommand("/deleteblocks", {
 	end),
 })
 
+local function set(name, param)
+    local node = get_node(name, param)
+    if not node then return end
+
+    local count = worldedit.set(worldedit.pos1[name], worldedit.pos2[name], node)
+    worldedit.player_notify(name, count .. " nodes set")
+end
+
 minetest.register_chatcommand("/set", {
 	params = "<node>",
 	description = "Set the current WorldEdit region to <node>",
 	privs = {worldedit=true},
 	func = safe_region(function(name, param)
-		local node = get_node(name, param)
-		if not node then return end
+        set(name, param)
+	end, check_region),
+})
 
-		local count = worldedit.set(worldedit.pos1[name], worldedit.pos2[name], node)
-		worldedit.player_notify(name, count .. " nodes set")
+minetest.register_chatcommand("/setair", {
+	privs = {worldedit=true},
+	func = safe_region(function(name)
+        set(name, "air")
+	end, check_region),
+})
+
+minetest.register_chatcommand("/setdirtgrass", {
+	privs = {worldedit=true},
+	func = safe_region(function(name)
+        set(name, "Dirt With Grass")
 	end, check_region),
 })
 

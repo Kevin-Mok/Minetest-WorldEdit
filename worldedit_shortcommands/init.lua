@@ -14,6 +14,15 @@ worldedit.alias_chatcommand = function(alias, original_command)
 	return false
 end
 
+-- custom
+worldedit.alias_chatcommand("p", "/p")
+worldedit.alias_chatcommand("ps", "/pset")
+worldedit.alias_chatcommand("r", "/reset")
+worldedit.alias_chatcommand("fp", "/fixedpos")
+worldedit.alias_chatcommand("s", "/set")
+worldedit.alias_chatcommand("sa", "/setair")
+worldedit.alias_chatcommand("sdg", "/setdirtgrass")
+
 worldedit.alias_chatcommand("/i", "/inspect")
 worldedit.alias_chatcommand("/rst", "/reset")
 worldedit.alias_chatcommand("/mk", "/mark")
